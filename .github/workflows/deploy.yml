@@ -28,35 +28,25 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build Kotlin/JS
-        run: ./gradlew jsBrowserProductionWebpack -x allTests
+        run: ./gradlew build -x allTests
 
-      - name: Find production output
+      - name: Inspect build output
         run: |
-          echo "Looking for index.html..."
+          echo "=== All index.html files ==="
           find build -name index.html -type f
 
-      - name: Find production directory
-        run: |
-          INDEX=$(find build -path "*/productionExecutable/index.html" -type f | head -n 1)
+          echo ""
+          echo "=== build/dist ==="
+          find build/dist -maxdepth 5 -type f 2>/dev/null | head -100
 
-          if [ -z "$INDEX" ]; then
-            echo "Could not find production index.html"
-            exit 1
-          fi
-
-          echo "Found: $INDEX"
-          echo "Production directory: $(dirname "$INDEX")"
-
-          mkdir -p _site
-          cp -r "$(dirname "$INDEX")"/* _site/
-
-          echo "Contents of _site:"
-          ls -la _site
+          echo ""
+          echo "=== Kotlin JS directories ==="
+          find build -type d \( -name "*production*" -o -name "*executable*" \) 2>/dev/null
 
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./_site
+          path: ./build/dist
 
       - name: Deploy
         uses: actions/deploy-pages@v4
