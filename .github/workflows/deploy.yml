@@ -1,0 +1,39 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Kotlin/JS
+        run: ./gradlew jsBrowserProductionWebpack
+
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/dist/js/productionExecutable
+
+      - name: Deploy
+        uses: actions/deploy-pages@v4
