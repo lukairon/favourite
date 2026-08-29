@@ -11,7 +11,7 @@ permissions:
   id-token: write
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -30,23 +30,24 @@ jobs:
       - name: Build Kotlin/JS
         run: ./gradlew build -x allTests
 
-      - name: Inspect build output
-        run: |
-          echo "=== All index.html files ==="
-          find build -name index.html -type f
-
-          echo ""
-          echo "=== build/dist ==="
-          find build/dist -maxdepth 5 -type f 2>/dev/null | head -100
-
-          echo ""
-          echo "=== Kotlin JS directories ==="
-          find build -type d \( -name "*production*" -o -name "*executable*" \) 2>/dev/null
-
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build/dist
+          path: ./build/dist/js/productionExecutable
 
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+      pages: write
+      id-token: write
+
+    steps:
       - name: Deploy
+        id: deployment
         uses: actions/deploy-pages@v4
